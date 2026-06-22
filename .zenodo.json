@@ -1,0 +1,24 @@
+{
+  "title": "RIV-Bench: Remediation Intent Verification Benchmark",
+  "description": "A reproducible benchmark for verifying whether an automated infrastructure-as-code remediation satisfies a compliance control's intent rather than merely passing a syntactic linter. Includes a labeled fixture set across openly available frameworks (CIS AWS/Azure/GCP, SOC 2), JSON Schemas for cases and control-intent predicates, metric definitions, and a naive lint-only baseline that exposes the silent lint-pass-but-intent-unmet failure class. The benchmark is method-neutral and does not include any proprietary verification engine or requirement corpus.",
+  "upload_type": "dataset",
+  "access_right": "open",
+  "license": "Apache-2.0",
+  "keywords": [
+    "compliance automation",
+    "infrastructure as code",
+    "remediation verification",
+    "control intent",
+    "cloud security",
+    "benchmark",
+    "trustworthy AI"
+  ],
+  "creators": [
+    {
+      "name": "Almuhamedi, Anas",
+      "affiliation": "ComplyForm LLC",
+      "orcid": "0009-0004-4176-1516"
+    }
+  ],
+  "notes": "Fixtures use only openly available frameworks; no proprietary control content is included. Add the NSF award number under 'grants' once funded."
+}

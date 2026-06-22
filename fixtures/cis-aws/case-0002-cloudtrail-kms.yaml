@@ -1,0 +1,44 @@
+id: cis-aws-0002
+framework: cis-aws
+cloud: aws
+control_ref: "CIS AWS Foundations — CloudTrail logs encrypted at rest with a KMS CMK (descriptive; item number is version-dependent)"
+control_title: "CloudTrail log files must be encrypted at rest using a KMS customer-managed key the trail can actually use."
+description: >
+  A trail has no KMS encryption. The candidate adds a kms_key_id, but the referenced key's policy
+  does not permit the CloudTrail service to use it, so the configuration is valid yet non-functional.
+iac: terraform-hcl
+misconfiguration: |
+  resource "aws_cloudtrail" "main" {
+    name           = "org-trail"
+    s3_bucket_name = aws_s3_bucket.trail.id
+    # no kms_key_id -> logs not encrypted with a CMK
+  }
+candidate_remediation: |
+  resource "aws_kms_key" "trail" {
+    description = "cloudtrail"
+    # key policy grants only the root account; no grant to cloudtrail.amazonaws.com
+  }
+  resource "aws_cloudtrail" "main" {
+    name           = "org-trail"
+    s3_bucket_name = aws_s3_bucket.trail.id
+    kms_key_id     = aws_kms_key.trail.arn
+  }
+lint_status: pass
+intent_predicate:
+  statement: "CloudTrail log files are encrypted at rest with a CMK that CloudTrail is permitted to use."
+  evaluation_scope: multi-resource
+  conditions:
+    - assert: "The trail sets kms_key_id to a customer-managed KMS key."
+      rationale: "Encryption with a CMK is the control's surface requirement."
+    - assert: "The referenced KMS key's key policy grants the CloudTrail service principal (cloudtrail.amazonaws.com) the actions required to use the key (e.g. GenerateDataKey*, and Decrypt for the relevant readers)."
+      rationale: "Without service permission on the key, CloudTrail cannot encrypt/deliver; the encryption is nominal only and log delivery breaks."
+  common_bypasses:
+    - "Referencing a KMS key whose policy omits the CloudTrail service principal."
+    - "Treating 'kms_key_id is set' as sufficient without checking the key policy."
+control_intent_satisfied: false
+failure_class: lint-pass-but-intent-unmet
+rationale: >
+  tofu validate passes and a plan shows kms_key_id set, so syntax/plan checks are green. But the
+  key policy does not authorize CloudTrail, so encryption is non-functional and delivery fails —
+  the control's intent is not met despite a valid configuration.
+tags: [operationally-broken, cloudtrail, kms, cross-resource]

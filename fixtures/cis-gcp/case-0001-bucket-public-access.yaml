@@ -1,0 +1,40 @@
+id: cis-gcp-0001
+framework: cis-gcp
+cloud: gcp
+control_ref: "CIS Google Cloud Foundations — Cloud Storage buckets not anonymously or publicly accessible (descriptive; item number is version-dependent)"
+control_title: "A Cloud Storage bucket must not be public to anonymous or all-authenticated principals."
+description: >
+  A bucket grants object-viewer to allUsers. The candidate removes the allUsers grant but an
+  allAuthenticatedUsers grant remains, which still makes the bucket effectively public.
+iac: terraform-hcl
+misconfiguration: |
+  resource "google_storage_bucket_iam_binding" "public" {
+    bucket  = google_storage_bucket.assets.name
+    role    = "roles/storage.objectViewer"
+    members = ["allUsers"]
+  }
+candidate_remediation: |
+  resource "google_storage_bucket_iam_binding" "public" {
+    bucket  = google_storage_bucket.assets.name
+    role    = "roles/storage.objectViewer"
+    members = ["allAuthenticatedUsers"]   # allUsers removed, but this is still effectively public
+  }
+lint_status: pass
+intent_predicate:
+  statement: "No IAM binding grants any role to a public principal on the bucket."
+  evaluation_scope: multi-resource
+  conditions:
+    - assert: "No bucket IAM binding lists allUsers in its members."
+      rationale: "allUsers is anonymous public access."
+    - assert: "No bucket IAM binding lists allAuthenticatedUsers in its members."
+      rationale: "allAuthenticatedUsers grants access to any authenticated Google account — effectively public, not 'internal'."
+  common_bypasses:
+    - "Replacing allUsers with allAuthenticatedUsers and treating it as private."
+    - "Checking only for the literal string allUsers."
+control_intent_satisfied: false
+failure_class: lint-pass-but-intent-unmet
+rationale: >
+  The candidate is valid and removes the anonymous grant, so a check looking only for allUsers
+  passes. But allAuthenticatedUsers keeps the bucket reachable by any Google account, so the
+  control's intent (not publicly accessible) is not met.
+tags: [public-access, gcs, principal-confusion]

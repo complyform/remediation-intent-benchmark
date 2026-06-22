@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use RIV-Bench, please cite it as below."
+title: "RIV-Bench: Remediation Intent Verification Benchmark"
+abstract: >-
+  A reproducible benchmark for verifying whether an automated infrastructure-as-code
+  remediation satisfies a compliance control's intent rather than merely passing a
+  syntactic linter, with a labeled fixture set across openly available frameworks
+  (CIS AWS/Azure/GCP, SOC 2) and a naive baseline that exposes the silent
+  lint-pass-but-intent-unmet failure class.
+type: dataset
+authors:
+  - family-names: "Almuhamedi"
+    given-names: "Anas"
+    orcid: "https://orcid.org/0009-0004-4176-1516"
+    affiliation: "ComplyForm LLC"
+keywords:
+  - compliance automation
+  - infrastructure as code
+  - remediation verification
+  - control intent
+  - cloud security
+  - benchmark
+license: Apache-2.0
+repository-code: "https://github.com/complyform/remediation-intent-benchmark"
+# Once archived to Zenodo, add the versioned DOI here:
+# doi: "10.5281/zenodo.XXXXXXX"
+version: "0.1.0"
+date-released: "2026-06-21"

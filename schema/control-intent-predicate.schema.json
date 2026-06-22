@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/complyform/remediation-intent-benchmark/schema/control-intent-predicate.schema.json",
+  "title": "Control-Intent Predicate",
+  "description": "An abstracted, human-readable expression of what it means for a control's intent to be satisfied, stated over required-configuration state. This is deliberately a documentation schema, not an executable policy language: it captures the conditions a verifier must establish, without prescribing or revealing any particular verification engine. The conditions are evaluated over the WHOLE relevant configuration, not a single resource or line.",
+  "type": "object",
+  "required": ["statement", "conditions", "evaluation_scope"],
+  "additionalProperties": false,
+  "properties": {
+    "statement": {
+      "type": "string",
+      "description": "Plain-language statement of the control's intent, e.g. 'No path exists by which the bucket is publicly readable.'"
+    },
+    "evaluation_scope": {
+      "type": "string",
+      "description": "What must be considered to judge satisfaction.",
+      "enum": ["single-resource", "multi-resource", "cross-rule", "whole-account"]
+    },
+    "conditions": {
+      "type": "array",
+      "description": "The conjunction of conditions that must ALL hold for intent to be satisfied. Each is a human-readable, checkable assertion over configuration state.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["assert"],
+        "additionalProperties": false,
+        "properties": {
+          "assert": {
+            "type": "string",
+            "description": "A single checkable condition, e.g. 'aws_s3_bucket_public_access_block has all four block flags = true for the target bucket.'"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Why this condition is necessary for the control's intent (often the reason a linter that omits it produces a silent failure)."
+          }
+        }
+      }
+    },
+    "common_bypasses": {
+      "type": "array",
+      "description": "Known ways a change can pass a linter yet fail this predicate. These are the traps the lint-pass-but-intent-unmet cases exercise.",
+      "items": { "type": "string" }
+    }
+  }
+}

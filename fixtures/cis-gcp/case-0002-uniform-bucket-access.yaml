@@ -1,0 +1,37 @@
+id: cis-gcp-0002
+framework: cis-gcp
+cloud: gcp
+control_ref: "CIS Google Cloud Foundations — uniform bucket-level access enabled on Cloud Storage buckets (descriptive; item number is version-dependent)"
+control_title: "Cloud Storage buckets must have uniform bucket-level access enabled."
+description: >
+  A bucket has uniform bucket-level access disabled. The candidate attempts to enable it but
+  references an undefined resource, so the configuration does not validate.
+iac: terraform-hcl
+misconfiguration: |
+  resource "google_storage_bucket" "assets" {
+    name                        = "acme-assets"
+    location                    = "US"
+    uniform_bucket_level_access = false
+  }
+candidate_remediation: |
+  resource "google_storage_bucket" "assets" {
+    name                        = "acme-assets"
+    location                    = "US"
+    uniform_bucket_level_access = google_storage_bucket_config.assets.uniform   # references a resource type that does not exist
+  }
+lint_status: fail
+intent_predicate:
+  statement: "uniform_bucket_level_access is enabled on the bucket."
+  evaluation_scope: single-resource
+  conditions:
+    - assert: "The bucket sets uniform_bucket_level_access = true."
+      rationale: "This directly enforces the control."
+  common_bypasses: []
+control_intent_satisfied: false
+failure_class: lint-fail
+rationale: >
+  The candidate references an undefined resource type, so tofu validate errors before any
+  intent question arises. Included so the benchmark confirms a method handles the easy case
+  (a linter already rejects this) and does not, for example, blindly accept or blindly reject
+  every change. A linter correctly rejects this; intent is moot.
+tags: [lint-fail, gcs, uniform-access]

@@ -1,0 +1,63 @@
+id: cis-azure-0002
+framework: cis-azure
+cloud: azure
+control_ref: "CIS Microsoft Azure Foundations — management ports (SSH 22 / RDP 3389) not exposed to the Internet (descriptive; item number is version-dependent)"
+control_title: "No NSG rule may permit inbound Internet access to management ports."
+description: >
+  An NSG allows both SSH and RDP from the Internet. The candidate narrows the SSH rule to a
+  corporate range but leaves a separate rule permitting RDP from any source.
+iac: terraform-hcl
+misconfiguration: |
+  # NSG with a broad inbound rule allowing 22 and 3389 from the Internet
+  security_rule {
+    name                       = "allow-mgmt"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    destination_port_ranges    = ["22", "3389"]
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+candidate_remediation: |
+  # SSH narrowed...
+  security_rule {
+    name                       = "allow-ssh-corp"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    destination_port_range     = "22"
+    source_address_prefix      = "203.0.113.0/24"   # corporate range
+    destination_address_prefix = "*"
+  }
+  # ...but RDP still open to the Internet via a separate rule
+  security_rule {
+    name                       = "allow-rdp"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    destination_port_range     = "3389"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+lint_status: pass
+intent_predicate:
+  statement: "No effective inbound path permits Internet access to TCP 22 or 3389."
+  evaluation_scope: cross-rule
+  conditions:
+    - assert: "Across ALL inbound Allow rules, considering priority/precedence, none permits source Internet/Any to destination port 22."
+      rationale: "Intent is a property of the whole rule set, not a single rule."
+    - assert: "Across ALL inbound Allow rules, none permits source Internet/Any to destination port 3389."
+      rationale: "Fixing only SSH leaves RDP exposed; the control covers both management ports."
+  common_bypasses:
+    - "Narrowing one management-port rule while another rule still allows a different management port from the Internet."
+    - "Evaluating each security_rule in isolation rather than the effective combination."
+control_intent_satisfied: false
+failure_class: lint-pass-but-intent-unmet
+rationale: >
+  Both rules are valid and a per-rule check sees a properly scoped SSH rule and passes. But RDP
+  (3389) remains open to the Internet via a sibling rule, so the control's intent is unmet. This
+  case requires reasoning across multiple, partly-conflicting rules.
+tags: [cross-rule, partial-fix, nsg, management-ports]

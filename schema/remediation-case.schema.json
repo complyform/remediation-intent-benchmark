@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/complyform/remediation-intent-benchmark/schema/remediation-case.schema.json",
+  "title": "RIV-Bench Remediation Case",
+  "description": "A single labeled (misconfiguration, candidate_remediation) case for the Remediation Intent Verification Benchmark.",
+  "type": "object",
+  "required": [
+    "id",
+    "framework",
+    "cloud",
+    "control_ref",
+    "control_title",
+    "description",
+    "misconfiguration",
+    "candidate_remediation",
+    "lint_status",
+    "intent_predicate",
+    "control_intent_satisfied",
+    "failure_class"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable unique case id, e.g. cis-aws-0001.",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Openly available framework the control belongs to.",
+      "enum": ["cis-aws", "cis-azure", "cis-gcp", "soc2"]
+    },
+    "cloud": {
+      "type": "string",
+      "enum": ["aws", "azure", "gcp"]
+    },
+    "control_ref": {
+      "type": "string",
+      "description": "Human reference to the control. Benchmark numbering is version-dependent; this is descriptive, not a pinned identifier."
+    },
+    "control_title": {
+      "type": "string",
+      "description": "Short statement of what the control requires."
+    },
+    "description": {
+      "type": "string",
+      "description": "One or two sentences describing the case and what is being tested."
+    },
+    "iac": {
+      "type": "string",
+      "description": "Optional. IaC language/dialect the snippets are written in.",
+      "default": "terraform-hcl"
+    },
+    "misconfiguration": {
+      "type": "string",
+      "description": "The configuration that violates the control (snippet or description)."
+    },
+    "candidate_remediation": {
+      "type": "string",
+      "description": "The proposed fix (snippet or description) whose intent-satisfaction is being judged."
+    },
+    "lint_status": {
+      "type": "string",
+      "description": "Whether the candidate remediation is syntactically/structurally valid and applies cleanly under a standard validator.",
+      "enum": ["pass", "fail"]
+    },
+    "intent_predicate": {
+      "$ref": "control-intent-predicate.schema.json"
+    },
+    "control_intent_satisfied": {
+      "type": "boolean",
+      "description": "Ground truth: does the candidate remediation actually satisfy the control's intent, judged against intent_predicate."
+    },
+    "failure_class": {
+      "type": "string",
+      "enum": ["correct", "lint-fail", "lint-pass-but-intent-unmet"]
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why the case carries its label; the reasoning a verifier would need to get this right."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional descriptors, e.g. cross-rule, operationally-broken, partial-fix."
+    }
+  }
+}

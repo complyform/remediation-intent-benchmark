@@ -1,0 +1,41 @@
+id: cis-aws-0001
+framework: cis-aws
+cloud: aws
+control_ref: "CIS AWS Foundations — S3 buckets should block public access (descriptive; item number is version-dependent)"
+control_title: "An S3 bucket must not be publicly accessible by any path."
+description: >
+  A bucket has no public-access-block configuration. The candidate remediation adds one but
+  enables only two of the four block settings and adds no guard against a public bucket policy.
+iac: terraform-hcl
+misconfiguration: |
+  resource "aws_s3_bucket" "data" {
+    bucket = "acme-reports"
+  }
+  # No aws_s3_bucket_public_access_block; account-level BPA not enforced.
+candidate_remediation: |
+  resource "aws_s3_bucket_public_access_block" "data" {
+    bucket                  = aws_s3_bucket.data.id
+    block_public_acls       = true
+    ignore_public_acls      = true
+    # block_public_policy   left false
+    # restrict_public_buckets left false
+  }
+lint_status: pass
+intent_predicate:
+  statement: "No path exists by which the bucket is publicly readable or writable."
+  evaluation_scope: multi-resource
+  conditions:
+    - assert: "aws_s3_bucket_public_access_block for the bucket has block_public_acls, ignore_public_acls, block_public_policy, AND restrict_public_buckets all set to true."
+      rationale: "All four flags are required; ACL-only blocking leaves the policy path open."
+    - assert: "No attached bucket policy grants access to Principal \"*\" (or to a wildcard/anonymous principal)."
+      rationale: "A public bucket policy can grant access even when ACL-based public access is blocked, unless block_public_policy and restrict_public_buckets are enforced."
+  common_bypasses:
+    - "Setting only the two ACL flags (block_public_acls, ignore_public_acls) while leaving the two policy flags false."
+    - "Blocking public ACLs while a permissive bucket policy with Principal \"*\" remains in place."
+control_intent_satisfied: false
+failure_class: lint-pass-but-intent-unmet
+rationale: >
+  The candidate is valid HCL and a check that merely asserts "a public_access_block resource exists"
+  would pass. But with block_public_policy and restrict_public_buckets left false, a public bucket
+  policy can still expose the bucket — the control's intent (no public access) is not satisfied.
+tags: [partial-fix, s3, public-access]

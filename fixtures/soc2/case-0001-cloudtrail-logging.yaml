@@ -1,0 +1,43 @@
+id: soc2-0001
+framework: soc2
+cloud: aws
+control_ref: "SOC 2 — CC7.2 (system monitoring); representative technical interpretation: audit logging is enabled and capturing events"
+control_title: "Audit logging must actually capture management events across the environment."
+description: >
+  Representative SOC 2 monitoring control. A trail is single-region. The candidate makes it
+  multi-region but leaves logging turned off, so no events are captured.
+iac: terraform-hcl
+misconfiguration: |
+  resource "aws_cloudtrail" "main" {
+    name                  = "org-trail"
+    s3_bucket_name        = aws_s3_bucket.trail.id
+    is_multi_region_trail = false
+    enable_logging        = true
+  }
+candidate_remediation: |
+  resource "aws_cloudtrail" "main" {
+    name                  = "org-trail"
+    s3_bucket_name        = aws_s3_bucket.trail.id
+    is_multi_region_trail = true     # widened coverage...
+    enable_logging        = false    # ...but logging is now OFF
+  }
+lint_status: pass
+intent_predicate:
+  statement: "Audit events are being captured across all regions."
+  evaluation_scope: single-resource
+  conditions:
+    - assert: "The trail is multi-region (is_multi_region_trail = true)."
+      rationale: "Coverage must span regions for the monitoring control's intent."
+    - assert: "The trail is actively logging (enable_logging = true)."
+      rationale: "A multi-region trail that is not logging captures nothing; coverage breadth is meaningless without logging on."
+  common_bypasses:
+    - "Enabling multi-region while leaving enable_logging false."
+    - "Checking is_multi_region_trail without checking that logging is enabled."
+control_intent_satisfied: false
+failure_class: lint-pass-but-intent-unmet
+rationale: >
+  The candidate is valid and improves the multi-region attribute, so a check focused on
+  is_multi_region_trail passes. But with logging disabled, no audit events are captured, so the
+  SOC 2 monitoring intent is unmet. Demonstrates that satisfying one attribute of a control while
+  silently disabling another defeats intent.
+tags: [cloudtrail, logging, soc2, attribute-tradeoff]

@@ -1,0 +1,43 @@
+id: cis-azure-0001
+framework: cis-azure
+cloud: azure
+control_ref: "CIS Microsoft Azure Foundations — 'Secure transfer required' enabled for Storage Accounts (descriptive; item number is version-dependent)"
+control_title: "Storage accounts must require secure (HTTPS) transfer."
+description: >
+  A storage account allows insecure transport. The candidate enables secure-transfer-required.
+  This is a clean, correct remediation and must NOT be flagged as a failure.
+iac: terraform-hcl
+misconfiguration: |
+  resource "azurerm_storage_account" "logs" {
+    name                     = "acmelogs"
+    resource_group_name      = azurerm_resource_group.main.name
+    location                 = "eastus"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+    https_traffic_only_enabled = false   # insecure transport allowed
+  }
+candidate_remediation: |
+  resource "azurerm_storage_account" "logs" {
+    name                     = "acmelogs"
+    resource_group_name      = azurerm_resource_group.main.name
+    location                 = "eastus"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+    https_traffic_only_enabled = true    # secure transfer now required
+  }
+lint_status: pass
+intent_predicate:
+  statement: "The storage account rejects non-HTTPS requests."
+  evaluation_scope: single-resource
+  conditions:
+    - assert: "The storage account has secure-transfer-required enabled (https_traffic_only_enabled = true)."
+      rationale: "This single property directly enforces the control's intent for the account."
+  common_bypasses: []
+control_intent_satisfied: true
+failure_class: correct
+rationale: >
+  The candidate sets exactly the property the control requires, with no remaining insecure path.
+  Included so the benchmark penalizes methods that raise false alarms on genuinely correct fixes.
+  Note: the attribute name (https_traffic_only_enabled vs the older enable_https_traffic_only) is
+  azurerm-provider-version dependent; the intent is identical.
+tags: [correct, storage, transport-security]
