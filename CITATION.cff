@@ -22,7 +22,6 @@ keywords:
   - benchmark
 license: Apache-2.0
 repository-code: "https://github.com/complyform/remediation-intent-benchmark"
-# Once archived to Zenodo, add the versioned DOI here:
-# doi: "10.5281/zenodo.XXXXXXX"
+doi: "10.5281/zenodo.20804481"
 version: "0.1.0"
 date-released: "2026-06-21"

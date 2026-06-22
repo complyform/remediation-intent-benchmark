@@ -3,7 +3,7 @@
 > A reproducible benchmark for a single question: **when an automated remediation is applied to fix a compliance finding, does it actually satisfy the control's *intent* — or does it merely pass a syntactic linter while leaving the control unmet?**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-<!-- Add once archived to Zenodo: [![DOI](https://zenodo.org/badge/DOI/<your-doi>.svg)](https://doi.org/<your-doi>) -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20804481.svg)](https://doi.org/10.5281/zenodo.20804481)
 
 RIV-Bench is the open benchmark behind ComplyForm's research on **verifiable trust in autonomous compliance remediation**. It exists because the most dangerous failure in automated remediation is *silent*: a change that returns a clean exit code, passes a configuration linter, and reports success — while the underlying control is still violated. In a cloud account that costs money; on critical infrastructure and OT, where you often cannot re-run a plan to validate and a wrong change has physical consequences, it is disqualifying.
 
