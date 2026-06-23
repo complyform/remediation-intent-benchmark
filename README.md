@@ -54,6 +54,7 @@ If you use RIV-Bench, please cite it via the metadata in [`CITATION.cff`](CITATI
 ## Related
 
 - ComplyForm GitHub Action (product): https://github.com/complyform/complyform-action
+- Preprint: [Verifying Remediation Intent (Almuhamedi 2026)](https://doi.org/10.5281/zenodo.20806315)
 - ComplyForm: https://complyform.dev
 
 ## License
